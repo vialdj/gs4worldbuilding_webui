@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Random World
+{% endblock %}
+      
+{% block body %}
+<table class="table table-striped table-bordered">
+    <tbody>
+        <tr>
+            <td>Type</td>
+            <td>{{ world.designation }}</td>
+        </tr>
+        <tr>
+            <td>Diameter</td>
+            <td>{{ world.diameter | diameterFormat }}</td>
+        </tr>
+        <tr>
+            <td>Mass</td>
+            <td>{{ world.mass | massFormat }}</td>
+        </tr>
+        <tr>
+            <td>Density</td>
+            <td>{{ world.density | densityFormat | safe }}</td>
+        </tr>
+        <!-- TODO: if close to be removed as asteroid should not be worlds anymore-->
+        {% if world.core %}
+        <tr>
+            <td>Core</td>
+            <td>{{ world.core | enumFormat }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td>Gravity</td>
+            <td>{{ world.gravity | gravityFormat }}</td>
+        </tr>
+        <tr>
+            <td>Hydrographic coverage</td>
+            <td>{{ world.hydrographic_coverage | percentFormat }}</td>
+        </tr>
+        {% if world.atmosphere %}
+        <tr>
+            <td>Atmosphere</td>
+            <td>
+                <table class="table table-striped table-bordered table-secondary"">
+                    <tr>
+                        <td colspan="2">{{ world.atmosphere | atmoPropertiesFormat }}</td>
+                    </tr>
+                    <tr>
+                        <td>Composition</td>
+                        <td>{{ world.atmosphere.composition | atmoCompositionFormat | safe }}</td>
+                    </tr>
+                    <tr>
+                        <td>Pressure</td>
+                        <td>{{ world.atmosphere.pressure | atmoPressureFormat }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td>Climate</td>
+            <td>{{ world.climate | enumFormat }}</td>
+        </tr>
+        <tr>
+            <td>Temperature</td>
+            <td>{{ world.temperature | celsiusFormat }}</td>
+        </tr>
+        <tr>
+            <td>Habitability score</td>
+            <td>{{ world.habitability | scoreFormat }}</td>
+        </tr>
+        <tr>
+            <td>Affinity score</td>
+            <td>{{ world.affinity | scoreFormat }}</td>
+        </tr>
+        <tr>
+            <td>Resource Value Modifier (RVM)</td>
+            <td>{{ world.resource | resourceFormat }}</td>
+        </tr>
+    </tbody>
+</table>
+{% endblock %}

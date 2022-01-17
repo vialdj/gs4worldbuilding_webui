@@ -1,0 +1,16 @@
+body {
+    padding: 0px 0px 0px 0px;
+    margin: 0px;
+}
+  
+.loadbar {
+    color: #ff0000; 
+
+    margin: auto;
+    width:100%;
+    top:50%;
+    text-align: center;
+
+    z-index: 100;
+    position: fixed;
+}

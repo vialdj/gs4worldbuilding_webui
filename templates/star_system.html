@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Random Star System
+{% endblock %}
+      
+{% block body %}
+<section>
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-block">
+                <table class="table table-striped table-bordered">
+                    <tbody>
+                        <tr><th class="text-center" colspan="2">Star system summary</th></tr>
+                        <tr>
+                            <td>Multiplicity</td>
+                            <td class="text-right">{{ star_system.multiplicity | enumFormat }}</td>
+                        </tr>
+                        <tr>
+                            <td>Age</td>
+                            <td class="text-right">{{ star_system.age | timeFormat | safe}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+<section>
+    <div class="container-fluid">
+        {% for star in star_system._stars %}
+        <div class="card-group">
+            <div class="card">
+                <a href="{{ '#{}'.format(star.name) }}">
+                    <img class="card-img-top">
+                        <src>
+                            <svg xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="0" cy="0" r="{{ star.radius | scaleRadius }}" fill="transparent" stroke="black" stroke-width=2/>
+                            </svg>
+                        </src>
+                    <img>
+                    <div class="card-body">
+                        <div class="card-title font-weight-bold">{{ star.name }}</div>
+                        <div class="card-text">{{ '{}{}'.format(star.spectral_type, star.luminosity_class.name) }}</div>
+                        <div class="card-text">{{ '{:.2f}'.format(star.temperature) }}</div>    
+                    </div>
+                </a>
+            </div>
+            {% for world in star._worlds %}
+            {% if world is not satellite %}
+            <div class="card">
+                <a href="{{ '#{}'.format(world.name) }}">
+                    {% if world is planet %}
+                    <img class="card-img-top">
+                        <src>
+                            <svg xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="50" cy="50" r="{{ world.diameter | scaleDiameter }}" fill="black" />
+                            </svg>
+                        </src>
+                    </img>
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="card-title font-weight-bold">{{ world.name }}</div>
+                        {% if world is planet %}
+                        <div class="card-text">{{ world.diameter | diameterFormat }}</div>
+                        {% endif %}
+                        <div class="card-text">{{ '{:.2f}'.format(world.blackbody_temperature) }}</div>
+                        {% if world._moons %}
+                        <div class="card-text">{{ '({})'.format(world._moons | length) }}</div>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+<section>
+    <div id ="loadbar" class="loadbar"></div>
+    <div id="helptext" class="text-white helptext">Move camera: Left Mouse + Drag. Zoom: Mouse wheel / Two finger scroll. Hide GUI: H</div>
+    <div id="system-map">
+</section>
+<section>
+    <div class="container-fluid">
+        {% for star in star_system._stars %}
+        <div class="card">
+            <div class="card-header">
+                <a data-toggle="collapse" href="{{ '#{}'.format(star.name) }}">
+                    <div class="row">
+                        <div class="col font-weight-bold">{{ star.name }}</div>
+                        <div class="col text-center">{{ star.spectral_type }}{{ star.luminosity_class | enumFormat }}</div>
+                        <div class="col text-right">{{ '{:.2f}'.format(star.temperature) }}</div>
+                    </div>
+                </a>
+            </div>
+            <div id="{{ star.name }}" class="collapse">
+                <div class="card-block">
+                    <table class="table table-striped table-bordered"">
+                        <tbody>
+                            {% if star.__class__.__name__ == 'CompanionStar'%}
+                            <tr><th class="text-center" colspan="2">Orbital characteristics</th></tr>
+                            <tr>
+                                <td>Semimajor axis</td>
+                                <td class="text-right">{{ star.orbit.radius | distanceFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Orbital period</td>
+                                <td class="text-right">{{ star.orbit.period | timeFormat | safe }}</td>
+                            </tr>
+                            <tr>
+                                <td>Companion star of</td>
+                                <td class="text-right"><a href="{{ '#{}'.format(star._orbit._parent_body.name) }}">{{ star._orbit._parent_body.name }}</a></td>
+                            </tr>
+                            {% endif %}
+                            <tr><th class="text-center" colspan="2">Physical characteristics</th></tr>
+                            <tr>
+                                <td>Spectrum</td>
+                                <td class="text-right">{{ star.spectral_type }}{{ star.luminosity_class | enumFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Radius</td>
+                                <td class="text-right">{{ star.radius | radiusFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Mass</td>
+                                <td class="text-right">{{ star.mass | massFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Luminosity</td>
+                                <td class="text-right">{{ '{:.2g} L☉'.format(star.luminosity.value) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Temperature</td>
+                                <td class="text-right">{{ '{:.2f}'.format(star.temperature) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% for planet in star._worlds %}
+        {% for world in [planet] + (planet._moons if planet._moons else []) %}
+        <div id="{{ world.name }}" class="card">
+            <div class="card-header">
+                <a data-toggle="collapse" href="{{ '#{}'.format(world.name) }}">
+                    <div class="row">
+                        <div class="col font-weight-bold">{{ world.name }}</div>
+                        <div class="col text-center">{{ world._designation }}</div>
+                        <div class="col text-right">{{ '{:.2f}'.format(world.blackbody_temperature) }}</div>
+                    </div>
+                </a>
+            </div>
+            <div id="{{ world.name }}" class="collapse">
+                <div class="card-block">
+                    <table class="table table-striped table-bordered">
+                        <tbody>
+                            <tr><th class="text-center" colspan="2">GURPS designations</th></tr>
+                            <tr>
+                                <td>Type</td>
+                                <td class="text-right">{{ world._designation }}</td>
+                            </tr>
+                            {% if world is terrestrial or world is asteroid_belt %}
+                            <tr>
+                                <td>Climate</td>
+                                <td class="text-right">{{ world.climate | enumFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Habitability score</td>
+                                <td class="text-right">{{ world.habitability | scoreFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Affinity score</td>
+                                <td class="text-right">{{ world.affinity | scoreFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Resource value modifier (RVM)</td>
+                                <td class="text-right">{{ world.resource | resourceFormat }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr><th class="text-center" colspan="2">Orbital characteristics</th></tr>
+                            {% if world is not satellite %}
+                            <tr>
+                                <td>Apoapsis</td>
+                                <td class="text-right">{{ world.orbit.max_separation | distanceFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Periapsis</td>
+                                <td class="text-right">{{ world.orbit.min_separation | distanceFormat }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td>Apoastron</td>
+                                <td class="text-right">{{ world.orbit.max_separation | distanceFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Periastron</td>
+                                <td class="text-right">{{ world.orbit.min_separation | distanceFormat }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td>Semimajor axis</td>
+                                <td class="text-right">{{ world.orbit.radius | distanceFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Orbital period</td>
+                                <td class="text-right">{{ world.orbit.period | timeFormat | safe}}</td>
+                            </tr>
+                            <tr>
+                                <td>Inclination (i)</td>
+                                <td class="text-right">{{ world.orbit.inclination | dmsFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Longitude of ascending node (Ω)</td>
+                                <td class="text-right">{{ world.orbit.ascending_lon | dmsFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Argument of periapsis (ω)</td>
+                                <td class="text-right">{{ world.orbit.periapsis_arg | dmsFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Mean anomaly at epoch (M<sub>0</sub>)</td>
+                                <td class="text-right">{{ world.orbit.epoch_mean_anomaly | dmsFormat }}</td>
+                            </tr>
+                            {% if world is planet and world is not satellite and world.moons > 0 %}
+                            <tr>
+                                <td>Satellites</td>
+                                <td class="text-right">{{ world.moons }}</td>
+                            </tr>
+                            {% elif world is satellite %}
+                            <tr>
+                                <td>Satellite of</td>
+                                <td class="text-right"><a href="{{ '#{}'.format(world._orbit._parent_body.name) }}">{{ world._orbit._parent_body.name }}</a></td>
+                            </tr>
+                            {% endif %}
+                            <tr><th class="text-center" colspan="2">Physical characteristics</th></tr>
+                            {% if world is planet %}
+                            <tr>
+                                <td>Diameter</td>
+                                <td class="text-right">{{ world.diameter | diameterFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Mass</td>
+                                <td class="text-right">{{ world.mass | massFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Density</td>
+                                <td class="text-right">{{ '{:.2g} g/cm<sup>3</sup> ({:.2g} d🜨)'.format(world.density.to('g / cm3').value, world.density.value) | safe }}</td>
+                            </tr>
+                            <tr>
+                                <td>Gravity</td>
+                                <td class="text-right">{{ '{:.2f} g'.format(world.gravity.value) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Rotation period</td>
+                                <td class="text-right">{{ world.rotation | timeFormat | safe }}{% if world.tide_locked %} (1:1){% elif world.resonant %} (3:2){% endif %}</td>
+                            </tr>
+                            <tr>
+                                <td>Solar day</td>
+                                <td class="text-right">{{ world.solar_day | timeFormat | safe }}</td>
+                            </tr>
+                            <tr>
+                                <td>Axial tilt</td>
+                                <td class="text-right">{{ world.axial_tilt | dmsFormat }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td>Blackbody temperature</td>
+                                <td class="text-right">{{ '{:.2f}'.format(world.blackbody_temperature) }}</td>
+                            </tr>
+                            {% if world is asteroid_belt or world is terrestrial %}
+                            <tr>
+                                <td>Albedo</td>
+                                <td class="text-right">{{ '{:.3f}'.format(1 - world.absorption) }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if world is terrestrial and world.hydrographic_coverage > 0 %}
+                            <tr>
+                                <td>Hydrographic coverage</td>
+                                <td class="text-right">{{ '{:.2%}'.format(world.hydrographic_coverage) }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if world is terrestrial %}
+                            <tr>
+                                <td>Surface temperature</td>
+                                <td class="text-right">{{ world.temperature | celsiusFormat }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if world is terrestrial and world.atmosphere %}
+                            <tr><th class="text-center" colspan="2">Atmosphere</th></tr>
+                            <tr>
+                                <td colspan="2">{{ world.atmosphere | atmoPropertiesFormat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Composition</td>
+                                <td class="text-right">{{ world.atmosphere.composition | atmoCompositionFormat | safe }}</td>
+                            </tr>
+                            <tr>
+                                <td>Pressure</td>
+                                <td class="text-right">{{ world.atmosphere.pressure | atmoPressureFormat }}</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endfor %}
+        {% endfor %}
+    </div>
+</section>
+<!--  Custom Shader Code -->
+<script id="vertexShaderGlow" type="x-shader/x-vertex">
+    uniform vec3 viewVector;
+    uniform float c;
+    uniform float p;
+    varying float intensity;
+    void main() 
+    {
+      vec3 vNormal = normalize( normalMatrix * normal );
+      vec3 vNormel = normalize( normalMatrix * viewVector );
+      intensity = pow( c - dot(vNormal, vNormel), p );
+      
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+    }
+</script>
+
+<!-- fragment shader a.k.a. pixel shader -->
+<script id="fragmentShaderGlow" type="x-shader/x-vertex"> 
+  uniform vec3 glowColor;
+  varying float intensity;
+  void main() 
+    {
+    vec3 glow = glowColor * intensity;
+    gl_FragColor = vec4( glow, 1.0 );
+  }
+</script>
+
+<!-- Custom Shader Code -->
+<script id="vertexShaderAni" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    void main() 
+    { 
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+</script>
+
+<!-- fragment shader a.k.a. pixel shader -->
+<script id="fragmentShaderAni" type="x-shader/x-vertex"> 
+    uniform sampler2D baseTexture;
+    uniform float baseSpeed;
+    uniform sampler2D noiseTexture;
+    uniform float noiseScale;
+    uniform float alpha;
+    uniform float time;
+    varying vec2 vUv;
+    void main() 
+    {
+        vec2 uvTimeShift = vUv + vec2( -0.7, 1.5 ) * time * baseSpeed;	
+        vec4 noiseGeneratorTimeShift = texture2D( noiseTexture, uvTimeShift );
+        vec2 uvNoiseTimeShift = vUv + noiseScale * vec2( noiseGeneratorTimeShift.r, noiseGeneratorTimeShift.b );
+        vec4 baseColor = texture2D( baseTexture, uvNoiseTimeShift );
+        baseColor.a = alpha;
+        gl_FragColor = baseColor;
+    }  
+</script>
+<!-- Libraries -->
+<script src="static/js/lib/three.min.js"></script>
+<script src="static/js/lib/three-text2d.js"></script>
+<script src="static/js/controls/OrbitControls.js"></script>
+<script src="static/js/lib/stats.min.js"></script>
+<script src="static/js/lib/dat.gui.min.js"></script>
+
+<!-- Timing engine is global to avoid namespacing issues -->
+<script>
+     var Clock = new THREE.Clock();
+</script>
+
+<script>
+    var planets = [];
+    {% for world in star_system._stars[0]._worlds %}
+    {% if world is planet %}
+    planets.push({size: {{ world.diameter.value }},
+                  semimajor_axis: {{ world.orbit.radius.value * 149597900 }},
+                  eccentricity: {{ world.orbit.eccentricity }},
+                  mass: {{ world.mass.value * 5.972 * 10 ** 24}},
+                  inclination: {{ world.orbit.inclination | to_radian }},
+                  ascending_lon: {{ world.orbit.ascending_lon | to_radian }},
+                  periapsis_arg: {{ world.orbit.periapsis_arg | to_radian }},
+                  epoch_mean_anomaly: {{ world.orbit.epoch_mean_anomaly | to_radian }},
+                  name: '{{ world.name }}',
+                  texture: 'small_ice',
+                  {% if world._moons %}
+                  satellites: [
+                  {% for satellite in world._moons %}
+                  {size: {{ satellite.diameter.value }},
+                   semimajor_axis: {{ satellite.orbit.radius.value * 149597900 }},
+                   eccentricity: {{ satellite.orbit.eccentricity }},
+                   mass: {{ satellite.mass.value * 5.972 * 10 ** 24}},
+                   inclination: {{ satellite.orbit.inclination | to_radian }},
+                   ascending_lon: {{ satellite.orbit.ascending_lon | to_radian }},
+                   periapsis_arg: {{ satellite.orbit.periapsis_arg | to_radian }},
+                   epoch_mean_anomaly: {{ satellite.orbit.epoch_mean_anomaly | to_radian }},
+                   name: '{{ satellite.name }}',
+                   texture: 'small_ice',
+                   parent_mass: {{ satellite.orbit._parent_body.mass.value * 5.972 * 10 ** 24}}},
+                  {% endfor %}
+                  ]
+                  {% endif %}
+                });
+    {% endif %}
+    {% endfor %}
+</script>
+<!-- Physics -->
+<script src="static/js/physics/Kepler.js"></script>
+<script src="static/js/physics/PlanetData.js"></script>
+
+    <!-- Main -->
+    <script src="static/js/scene.js"></script>
+{% endblock %}
