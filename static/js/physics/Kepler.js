@@ -9,7 +9,7 @@
 var SCALING_TIME = 0.1; // Set by GUI
 const SET_SCALING_TIME = 1; //Equalizer as physics has a tendency to run a bit fast.
 
-// Uses Three.js clock. Substitute Clock.getElapsedTime with whatever your chosen timing engine is!
+// Uses threeJs.js clock. Substitute Clock.getElapsedTime with whatever your chosen timing engine is!
 function CalculateMT(n, t){
     var Mt = n * (Clock.getElapsedTime()) * SCALING_TIME * SET_SCALING_TIME;
     return(Mt);

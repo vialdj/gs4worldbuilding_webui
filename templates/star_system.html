@@ -78,7 +78,6 @@ Random Star System
     </div>
 </section>
 <section>
-    <div id ="loadbar" class="loadbar"></div>
     <div id="helptext" class="text-white helptext">Move camera: Left Mouse + Drag. Zoom: Mouse wheel / Two finger scroll. Hide GUI: H</div>
     <div id="system-map" style="background-color: #040d21;">
 </section>
@@ -311,74 +310,10 @@ Random Star System
         {% endfor %}
     </div>
 </section>
-<!--  Custom Shader Code -->
-<script id="vertexShaderGlow" type="x-shader/x-vertex">
-    uniform vec3 viewVector;
-    uniform float c;
-    uniform float p;
-    varying float intensity;
-    void main() 
-    {
-      vec3 vNormal = normalize( normalMatrix * normal );
-      vec3 vNormel = normalize( normalMatrix * viewVector );
-      intensity = pow( c - dot(vNormal, vNormel), p );
-      
-      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 
-    }
-</script>
-
-<!-- fragment shader a.k.a. pixel shader -->
-<script id="fragmentShaderGlow" type="x-shader/x-vertex"> 
-  uniform vec3 glowColor;
-  varying float intensity;
-  void main() 
-    {
-    vec3 glow = glowColor * intensity;
-    gl_FragColor = vec4( glow, 1.0 );
-  }
-</script>
-
-<!-- Custom Shader Code -->
-<script id="vertexShaderAni" type="x-shader/x-vertex">
-    varying vec2 vUv;
-    void main() 
-    { 
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-    }
-</script>
-
-<!-- fragment shader a.k.a. pixel shader -->
-<script id="fragmentShaderAni" type="x-shader/x-vertex"> 
-    uniform sampler2D baseTexture;
-    uniform float baseSpeed;
-    uniform sampler2D noiseTexture;
-    uniform float noiseScale;
-    uniform float alpha;
-    uniform float time;
-    varying vec2 vUv;
-    void main() 
-    {
-        vec2 uvTimeShift = vUv + vec2( -0.7, 1.5 ) * time * baseSpeed;	
-        vec4 noiseGeneratorTimeShift = texture2D( noiseTexture, uvTimeShift );
-        vec2 uvNoiseTimeShift = vUv + noiseScale * vec2( noiseGeneratorTimeShift.r, noiseGeneratorTimeShift.b );
-        vec4 baseColor = texture2D( baseTexture, uvNoiseTimeShift );
-        baseColor.a = alpha;
-        gl_FragColor = baseColor;
-    }  
-</script>
 <!-- Libraries -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="static/js/lib/three-text2d.js"></script>
-<script src="static/js/controls/OrbitControls.js"></script>
 <script src="//mrdoob.github.io/stats.js/build/stats.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
-
-<!-- Timing engine is global to avoid namespacing issues -->
-<script>
-     var Clock = new THREE.Clock();
-</script>
 
 <script>
     var objects = [];
@@ -417,33 +352,7 @@ Random Star System
     {% endfor %}
 </script>
 <!-- Physics -->
-<script src="static/js/physics/Kepler.js"></script>
-<script type="x-shader/x-vertex" id="vertexshader">
 
-    varying vec2 vUv;
+<script type="module" src="static/js/main.js"></script>
 
-    void main() {
-
-        vUv = uv;
-
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
-    }
-
-</script>
-<script type="x-shader/x-fragment" id="fragmentshader">
-
-    uniform sampler2D baseTexture;
-
-    varying vec2 vUv;
-
-    void main() {
-
-        gl_FragColor = ( texture2D( baseTexture, vUv ) + vec4( 1.0 ) * texture2D( baseTexture, vUv ) );
-
-    }
-
-</script>
-<script src="static/js/star.js"></script>
-<script src="static/js/scene.js"></script>
 {% endblock %}

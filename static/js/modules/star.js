@@ -1,3 +1,5 @@
+import * as THREE from 'https://cdn.skypack.dev/three@0.122.0';
+
 function star_mesh(star) {
     const colorMap = {
         'A5': 0xf9fcc8,
@@ -37,3 +39,5 @@ function star_mesh(star) {
     }
     return new THREE.Mesh(new THREE.SphereGeometry(star.size,50,50), new THREE.MeshBasicMaterial( {color: colorMap[star.spectral_type]} )); 
 }
+
+export { star_mesh };

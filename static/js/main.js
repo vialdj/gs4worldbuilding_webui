@@ -7,6 +7,11 @@
 // Add more stuff: Rings, asteroids? Perhaps a few famous comets?
 // Loading manager.
 
+import { star_mesh } from './modules/star.js';
+import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/controls/OrbitControls.js'
+import { SpriteText2D, textAlign } from 'https://cdn.skypack.dev/three-text2d'
+import * as THREE from 'https://cdn.skypack.dev/three@0.122.0';
+
 //Define Geometry
 var ZOOM_SCALE_FACTOR = 200000;
 const TRANSPARENT_SPHERE_SIZE = 5;
@@ -17,16 +22,7 @@ var camera_position = new THREE.Vector3(0,0,0); // Define where the camera is po
 var lights = [];
 
 var manager = new THREE.LoadingManager();
-
-document.getElementById("loadbar").innerHTML="<b> Loading: </b> 0%";
-
-manager.onProgress = function(item,loaded,total){
-    document.getElementById("loadbar").innerHTML="<b> Loading: </b>" + (loaded/total*100).toFixed(2)+"%";
-};
-
-manager.onLoad= function(){
-    document.getElementById("loadbar").innerHTML="";
-};
+var Clock = new THREE.Clock();
 
 var sceneObjs, star_group, orbit_outlines; // 3D objects and groups. Hierarchy is (in descending order of importance) orbit_group > planet_group. Sun and skybox group are special exceptions.
 // ^^^^^^^^^^ I must do this in a generic way but ugh re-architecting, hindsight how blessed art thou 
@@ -52,7 +48,6 @@ var options = new function(){
 init();
 animate();
 
-
  // Kilograms
 //var SCALING_TIME = 10.0;
 
@@ -70,7 +65,7 @@ function Planet(planet_obj, render_group) {
     //Create 3D Object to be rendered, and add it to the THREE Object3d group.
     this.parent_group.add(CreateSphere(this, this.size, 50, this.name));
     //  planet_obj.parent_group.add(CreateTransparentSphere(TRANSPARENT_SPHERE_SIZE,50,TRANSPARENT_SPHERE_NAME));
-    this.parent_group.add(CreateSpriteText(this.name,'#ffffff', this.name + "_text", this.size));
+    // this.parent_group.add(CreateSpriteText(this.name,'#ffffff', this.name + "_text", this.size));
 
     this.semimajor_axis_scene = function() { return (this.semimajor_axis); };
 
@@ -89,10 +84,8 @@ function init(){
     //  renderer.autoClear = false;
     //Setup camera and mouse controls.
     camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight,10,3e8);
-    camera.position.x = 0;
-    camera.position.y = 0;
-    camera.position.z = 0;
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    camera.position.set(0, 0, 0);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 0.5;
     controls.panSpeed = 0.8;
@@ -158,14 +151,13 @@ function init(){
         scene.add(planet_group)
     }
 
-    Camera_Focus = datGUI.add(options,'CameraFocus', sceneObjs.map(function(planet_obj) { return (planet_obj.name); }));
+    var Camera_Focus = datGUI.add(options,'CameraFocus', sceneObjs.map(function(planet_obj) { return (planet_obj.name); }));
 
     // Add the sun.
     star_group.add(star_mesh(objects[0]));
 
     window.addEventListener('resize',onWindowResize,false);
     render();
-    document.getElementById("loadbar").innerHTML="";
 };
 
 function CreateSphere(obj, radius, polygon_count, name, basic) {
@@ -213,12 +205,12 @@ function CreateTransparentSphere(radius,polygon_count,name){
     return(sphere_mesh);
 };
 
-function CreateSpriteText(text,colour,name,offset){
-    var SpriteText = new THREE_Text.SpriteText2D(text, { align: THREE_Text.textAlign.center, font: '30px Arial', fillStyle: colour, antialias: true });
-    SpriteText.position.set(0,offset+10,0);
-    SpriteText.name = name;
-    return(SpriteText);
-}
+//function CreateSpriteText(text,colour,name,offset){
+//    var SpriteText = new SpriteText2D(text, { align: textAlign.center, font: '30px Arial', fillStyle: colour, antialias: true });
+//    SpriteText.position.set(0,offset+10,0);
+//    SpriteText.name = name;
+//    return(SpriteText);
+//}
 
 // Pretty sure Three.Vector3 makes this redundant. Has a deltaV measurement I am pretty sure.
 function CalculateDistanceFromObject(camera_x,camera_y,camera_z,object_x,object_y,object_z){
