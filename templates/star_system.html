@@ -369,11 +369,11 @@ Random Star System
     }  
 </script>
 <!-- Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="static/js/lib/three-text2d.js"></script>
 <script src="static/js/controls/OrbitControls.js"></script>
-<script src="static/js/lib/stats.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+<script src="//mrdoob.github.io/stats.js/build/stats.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
 
 <!-- Timing engine is global to avoid namespacing issues -->
 <script>
@@ -393,7 +393,7 @@ Random Star System
                   ascending_lon: {{ world.orbit.ascending_lon | to_radian }},
                   periapsis_arg: {{ world.orbit.periapsis_arg | to_radian }},
                   epoch_mean_anomaly: {{ world.orbit.epoch_mean_anomaly | to_radian }},
-                  period: {{ world.orbit.period.value }} ** 2,
+                  period: {{ world.orbit.period.value }},
                   name: '{{ world.name }}',
                   texture: 'small_ice',
                   {% if world._moons %}
@@ -406,7 +406,7 @@ Random Star System
                    ascending_lon: {{ satellite.orbit.ascending_lon | to_radian }},
                    periapsis_arg: {{ satellite.orbit.periapsis_arg | to_radian }},
                    epoch_mean_anomaly: {{ satellite.orbit.epoch_mean_anomaly | to_radian }},
-                   period: {{ satellite.orbit.period.value }} ** 2,
+                   period: {{ satellite.orbit.period.value }},
                    name: '{{ satellite.name }}',
                    texture: 'small_ice'},
                   {% endfor %}
