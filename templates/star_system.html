@@ -373,7 +373,7 @@ Random Star System
 <script src="static/js/lib/three-text2d.js"></script>
 <script src="static/js/controls/OrbitControls.js"></script>
 <script src="static/js/lib/stats.min.js"></script>
-<script src="static/js/lib/dat.gui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
 
 <!-- Timing engine is global to avoid namespacing issues -->
 <script>
@@ -381,33 +381,34 @@ Random Star System
 </script>
 
 <script>
-    var planets = [];
+    var objects = [];
+    objects.push({size: Math.sqrt({{ star_system._stars[0].radius | to_earth_radius }}), 
+                  spectral_type: '{{ star_system._stars[0].spectral_type }}'});
     {% for world in star_system._stars[0]._worlds %}
     {% if world is planet %}
-    planets.push({size: {{ world.diameter.value }},
-                  semimajor_axis: {{ world.orbit.radius.value * 149597900 }},
+    objects.push({size: Math.sqrt({{ world.diameter.value }}),
+                  semimajor_axis: Math.sqrt({{ world.orbit.radius | to_earth_radius }}),
                   eccentricity: {{ world.orbit.eccentricity }},
-                  mass: {{ world.mass.value * 5.972 * 10 ** 24}},
                   inclination: {{ world.orbit.inclination | to_radian }},
                   ascending_lon: {{ world.orbit.ascending_lon | to_radian }},
                   periapsis_arg: {{ world.orbit.periapsis_arg | to_radian }},
                   epoch_mean_anomaly: {{ world.orbit.epoch_mean_anomaly | to_radian }},
+                  period: {{ world.orbit.period.value }} ** 2,
                   name: '{{ world.name }}',
                   texture: 'small_ice',
                   {% if world._moons %}
                   satellites: [
                   {% for satellite in world._moons %}
-                  {size: {{ satellite.diameter.value }},
-                   semimajor_axis: {{ satellite.orbit.radius.value * 149597900 }},
+                  {size: Math.sqrt({{ satellite.diameter.value }}),
+                   semimajor_axis: Math.sqrt({{ satellite.orbit.radius | to_earth_radius}}),
                    eccentricity: {{ satellite.orbit.eccentricity }},
-                   mass: {{ satellite.mass.value * 5.972 * 10 ** 24}},
                    inclination: {{ satellite.orbit.inclination | to_radian }},
                    ascending_lon: {{ satellite.orbit.ascending_lon | to_radian }},
                    periapsis_arg: {{ satellite.orbit.periapsis_arg | to_radian }},
                    epoch_mean_anomaly: {{ satellite.orbit.epoch_mean_anomaly | to_radian }},
+                   period: {{ satellite.orbit.period.value }} ** 2,
                    name: '{{ satellite.name }}',
-                   texture: 'small_ice',
-                   parent_mass: {{ satellite.orbit._parent_body.mass.value * 5.972 * 10 ** 24}}},
+                   texture: 'small_ice'},
                   {% endfor %}
                   ]
                   {% endif %}

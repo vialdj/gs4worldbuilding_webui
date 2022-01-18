@@ -1,4 +1,4 @@
-function star_mesh() {
+function star_mesh(star) {
     const colorMap = {
         'A5': 0xf9fcc8,
         'A6': 0xf9fcc8,
@@ -35,5 +35,5 @@ function star_mesh() {
         'M7': 0xfd9c89,
         'D': 0xffffff,
     }
-    return new THREE.Mesh(new THREE.SphereGeometry(SUN_SIZE,50,50), new THREE.MeshBasicMaterial( {color: colorMap['G2']} )); 
+    return new THREE.Mesh(new THREE.SphereGeometry(star.size,50,50), new THREE.MeshBasicMaterial( {color: colorMap[star.spectral_type]} )); 
 }

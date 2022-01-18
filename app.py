@@ -36,6 +36,10 @@ def to_radian(value):
     return value.to(u.rad).value
 
 @app.template_filter()
+def to_earth_radius(value):
+    return value.to(u.R_earth).value
+
+@app.template_filter()
 def radiusFormat(value):
     s = '{:.2f} km'.format(value.to(u.km).value)
     if value.to(u.R_jup).value > 5:

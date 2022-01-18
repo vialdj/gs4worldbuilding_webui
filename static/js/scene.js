@@ -8,16 +8,9 @@
 // Loading manager.
 
 //Define Geometry
-var ZOOM_SCALE_FACTOR = 1200;
-const SUN_MASS = 1.989e30;
-const PLANET_SCALE = 10000;
-const GRAV_CONSTANT = 6.674E-11;
-const SECONDS_IN_YEAR = 3.15576e7;
-const SUN_SIZE = 695;
-
+var ZOOM_SCALE_FACTOR = 200000;
 const TRANSPARENT_SPHERE_SIZE = 5;
 const TRANSPARENT_SPHERE_NAME = "TransparentSphere";
-//var ZOOM_SCALE_FACTOR = 1200;
 
 var scene, camera, controls, renderer; // The basics
 var camera_position = new THREE.Vector3(0,0,0); // Define where the camera is pointing at.
@@ -35,7 +28,7 @@ manager.onLoad= function(){
     document.getElementById("loadbar").innerHTML="";
 };
 
-var planet_objs, sun_group, orbit_outlines; // 3D objects and groups. Hierarchy is (in descending order of importance) orbit_group > planet_group. Sun and skybox group are special exceptions.
+var sceneObjs, star_group, orbit_outlines; // 3D objects and groups. Hierarchy is (in descending order of importance) orbit_group > planet_group. Sun and skybox group are special exceptions.
 // ^^^^^^^^^^ I must do this in a generic way but ugh re-architecting, hindsight how blessed art thou 
 // Setup FPS/Render Time/Memory usage monitor
 
@@ -49,7 +42,6 @@ var options = new function(){
   this.HighlightPlanets = true;
   this.AntiAliasing = false;
   this.Alpha = false;
-  this.PlanetScale = 1;
   this.OrbitScale = 0.02;
   this.CameraFocus = 'Sun';
   this.Render_Updated_Scaling = function(){UpdateScene();};
@@ -69,10 +61,6 @@ function Planet(planet_obj, render_group) {
     Object.assign(this, planet_obj)
 
     //This is for ES5 compatability in safari. Would prefer to use default parameters as ES6 defines it but Chrome/Firefox have basic support currently.
-    if (this.parent_mass === undefined) {
-        this.parent_mass = SUN_MASS;
-    }
-
     this.parent_group = render_group;
     this.bump = 'static/textures/' + this.texture + '/surface_bump.jpg';
     this.spec = 'static/textures/' + this.texture + '/surface_spec.jpg';
@@ -84,10 +72,10 @@ function Planet(planet_obj, render_group) {
     //  planet_obj.parent_group.add(CreateTransparentSphere(TRANSPARENT_SPHERE_SIZE,50,TRANSPARENT_SPHERE_NAME));
     this.parent_group.add(CreateSpriteText(this.name,'#ffffff', this.name + "_text", this.size));
 
-    this.semimajor_axis_scene = function() { return (this.semimajor_axis / PLANET_SCALE); };
+    this.semimajor_axis_scene = function() { return (this.semimajor_axis); };
 
     // This calls out to the main physics module and calculates the movement in the scene.
-    this.eccentric_anomaly = function(){ return(KeplerSolve(this.eccentricity, CalculateMT(CalculateN(this.semimajor_axis, this.parent_mass)))); };
+    this.eccentric_anomaly = function(){ return (KeplerSolve(this.eccentricity, CalculateMT(this.period))); };
     this.true_anomaly = function(){ return(CalculateTrueAnamoly(this.eccentric_anomaly(), this.eccentricity, true) + this.epoch_mean_anomaly); };
 };
 
@@ -110,7 +98,7 @@ function init(){
     controls.panSpeed = 0.8;
     controls.noZoom = false;
     controls.enablePan = false;
-    controls.minDistance = 2000;
+    controls.minDistance = 100;
     controls.maxDistance = 0.8e8;
     controls.addEventListener( 'change', render );
 
@@ -118,7 +106,6 @@ function init(){
     datGUI = new dat.GUI();
     var OrbitalFolder = datGUI.addFolder("Orbital Parameters");
     OrbitalFolder.add(options,'OrbitSpeedMultiplier',0.0,20000000.0);
-    OrbitalFolder.add(options,'PlanetScale',1,30);
     var ShowOutlines = OrbitalFolder.add(options,'ShowOrbitOutline');
     var HighlightPlanets = OrbitalFolder.add(options,'HighlightPlanets');
     var EffectsFolder = datGUI.addFolder("3D Options");
@@ -128,14 +115,6 @@ function init(){
 
     ShowOutlines.onChange(function(value) {
         orbit_outlines.visible = value;
-    });
-
-    HighlightPlanets.onChange(function(value) {
-        if (value == true) {
-            ZOOM_SCALE_FACTOR = 1200;
-        } else {
-            ZOOM_SCALE_FACTOR = 2e5;
-        }
     });
 
     //Add our 3D scene to the html web page!
@@ -151,23 +130,23 @@ function init(){
     scene.add(lights[ 1 ]);
 
     //Setup planet objects...
-    sun_group = new THREE.Object3D();
+    star_group = new THREE.Object3D();
     orbit_outlines = new THREE.Object3D();
 
-    scene.add(sun_group);
-    sun_group.add(orbit_outlines);
+    scene.add(star_group);
+    star_group.add(orbit_outlines);
 
-    planet_objs = []
-    for (var i = 0, size = planets.length; i < size ; i++) {
+    sceneObjs = []
+    for (var i = 1, size = objects.length; i < size ; i++) {
         var planet_group = new THREE.Object3D();
-        var planet_obj = new Planet(planets[i], planet_group)
-        planet_objs.push(planet_obj)
-        if (planets[i].satellites) {
+        var planet_obj = new Planet(objects[i], planet_group)
+        sceneObjs.push(planet_obj)
+        if (objects[i].satellites) {
             var planet_orbit_outlines = new THREE.Object3D();
-            for (var j = 0, size = planets[i].satellites.length; j < size ; j++) {
+            for (var j = 0, size = objects[i].satellites.length; j < size ; j++) {
                 var satellite_group = new THREE.Object3D();
-                var satellite_obj = new Planet(planets[i].satellites[j], satellite_group, planet_obj)
-                planet_objs.push(satellite_obj)
+                var satellite_obj = new Planet(objects[i].satellites[j], satellite_group, planet_obj)
+                sceneObjs.push(satellite_obj)
                 planet_orbit_outlines.add(CreateOrbitalLine(satellite_obj));
                 planet_group.add(satellite_group);
             }
@@ -179,10 +158,10 @@ function init(){
         scene.add(planet_group)
     }
 
-    Camera_Focus = datGUI.add(options,'CameraFocus', planet_objs.map(function(planet_obj) { return (planet_obj.name); }));
+    Camera_Focus = datGUI.add(options,'CameraFocus', sceneObjs.map(function(planet_obj) { return (planet_obj.name); }));
 
     // Add the sun.
-    sun_group.add(star_mesh());
+    star_group.add(star_mesh(objects[0]));
 
     window.addEventListener('resize',onWindowResize,false);
     render();
@@ -250,36 +229,28 @@ function CalculateDistanceFromObject(camera_x,camera_y,camera_z,object_x,object_
     return(distance);
 };
 
-function ScaleOverlaySpheres(sphere_name,object_group,distance_from_group,scale_constant){
+function ScaleOverlaySpheres(sphere_name,object_group,distance_from_group){
     var distance_from_planet = 0.0;
     var distance_from_planet = CalculateDistanceFromObject(camera.position.x,camera.position.y,
         camera.position.z,distance_from_group.position.x,distance_from_group.position.y,
         distance_from_group.position.z);
-    object_group.getObjectByName(sphere_name,true).scale.x = (distance_from_planet)/scale_constant;
-    object_group.getObjectByName(sphere_name,true).scale.y = (distance_from_planet)/scale_constant;
-    object_group.getObjectByName(sphere_name,true).scale.z = (distance_from_planet)/scale_constant;
-};
-
-function ScalePlanet(planet, scale_constant){
-    planet.parent_group.getObjectByName(planet.name, true).scale.x = scale_constant;
-    planet.parent_group.getObjectByName(planet.name, true).scale.y = scale_constant;
-    planet.parent_group.getObjectByName(planet.name, true).scale.z = scale_constant;
+    object_group.getObjectByName(sphere_name,true).scale.x = (distance_from_planet);
+    object_group.getObjectByName(sphere_name,true).scale.y = (distance_from_planet);
+    object_group.getObjectByName(sphere_name,true).scale.z = (distance_from_planet);
 };
 
 // Sets camera target point.
 function UpdateCameraLocation(){
-    var filtered = planet_objs.filter(function (planet_obj) { return (planet_obj.name == options.CameraFocus); })
+    var filtered = sceneObjs.filter(function (planet_obj) { return (planet_obj.name == options.CameraFocus); })
     if (filtered[0]) {
         var parent_group = filtered[0].parent_group;
         camera_position.x = parent_group.position.x;
         camera_position.y = parent_group.position.y;
         camera_position.z = parent_group.position.z;
-        controls.minDistance = 200;
     } else {
         camera_position.x = 0;
         camera_position.y = 0;
         camera_position.z = 0;
-        controls.minDistance = 2000;
     }
 }
 
@@ -321,9 +292,8 @@ function update(){
     SCALING_TIME = options.OrbitSpeedMultiplier;
     //Calculate orbits!
 
-    for (var i = 0, size = planet_objs.length; i < size ; i++) {
-        AdjustPlanetLocation(planet_objs[i])
-        ScalePlanet(planet_objs[i], options.PlanetScale)
+    for (var i = 0, size = sceneObjs.length; i < size ; i++) {
+        AdjustPlanetLocation(sceneObjs[i])
         //ScaleOverlaySpheres('Pluto_text', pluto_group, pluto_group, ZOOM_SCALE_FACTOR);
     }
     // Give sun a bit of rotation per frame.

@@ -9,13 +9,6 @@
 var SCALING_TIME = 0.1; // Set by GUI
 const SET_SCALING_TIME = 1; //Equalizer as physics has a tendency to run a bit fast.
 
-//Calculate orbital period. Because of lack of similar-mass two-body problems, we only take the largest mass in.
-function CalculateN(semimajor_axis, parent_mass) {
-    var Orbital_Period = 1 / ((2 * Math.PI) * (Math.sqrt(Math.pow((semimajor_axis * 1000), 3) / (GRAV_CONSTANT * parent_mass))));
-    return(Orbital_Period);
-}; 
-
-
 // Uses Three.js clock. Substitute Clock.getElapsedTime with whatever your chosen timing engine is!
 function CalculateMT(n, t){
     var Mt = n * (Clock.getElapsedTime()) * SCALING_TIME * SET_SCALING_TIME;
