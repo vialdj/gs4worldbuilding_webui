@@ -22,7 +22,6 @@ const TRANSPARENT_SPHERE_NAME = "TransparentSphere";
 var scene, camera, controls, renderer; // The basics
 var camera_position = new THREE.Vector3(0,0,0); // Define where the camera is pointing at.
 var lights = [];
-var scene_tree;
 
 var manager = new THREE.LoadingManager();
 
@@ -123,9 +122,6 @@ function init(){
     var ShowOutlines = OrbitalFolder.add(options,'ShowOrbitOutline');
     var HighlightPlanets = OrbitalFolder.add(options,'HighlightPlanets');
     var EffectsFolder = datGUI.addFolder("3D Options");
-    var SunEffectsFolder = EffectsFolder.addFolder("Sun Shader");
-    SunEffectsFolder.add(options,'sun_effect_noise',0.00,1.00);
-    SunEffectsFolder.add(options,'sun_effect_speed',0.00,1.00)
     var RenderOptionsFolder = EffectsFolder.addFolder("Renderer Options");
     var AntiAliasing = RenderOptionsFolder.add(options,'AntiAliasing');
     RenderOptionsFolder.add(options,'Alpha');
@@ -186,54 +182,8 @@ function init(){
     Camera_Focus = datGUI.add(options,'CameraFocus', planet_objs.map(function(planet_obj) { return (planet_obj.name); }));
 
     // Add the sun.
-    var sun_text_loader = new THREE.TextureLoader();
-    var sun_texture = sun_text_loader.load('static/textures/sun_atmos.jpg');
-    sun_texture.wrapS = sun_texture.wrapT = THREE.RepeatWrapping;
-    var sun_noise_text = sun_text_loader.load('static/textures/sun_cloud_map.jpg');
-    sun_noise_text.wrapS = sun_noise_text.wrapT = THREE.RepeatWrapping;
+    sun_group.add(star_mesh());
 
-    // Define sun surface effect through shader.
-    var customAniMaterial = new THREE.ShaderMaterial( 
-        {
-            uniforms: {
-                baseTexture: 	{ type: "t", value: sun_texture },
-                baseSpeed: 		{ type: "f", value: 0.01 },
-                noiseTexture: 	{ type: "t", value: sun_noise_text },
-                noiseScale:		{ type: "f", value: 0.5337 },
-                alpha: 			{ type: "f", value: 0.5 },
-                time: 			{ type: "f", value: 1.0 }
-        },
-                vertexShader:   document.getElementById( 'vertexShaderAni'   ).textContent,
-                fragmentShader: document.getElementById( 'fragmentShaderAni' ).textContent
-        }   );
-
-    var sun_geometry=new THREE.SphereGeometry(SUN_SIZE,50,50);
-    this.sun_mesh = new THREE.Mesh(sun_geometry,customAniMaterial); 
-    this.sun_mesh.name = "sun";
-    this.sun_mesh.depthWrite = false;
-    sun_group.add(sun_mesh);
-
-    // Define glowing/halo shader effect for sun.
-    var customMaterialGlow = new THREE.ShaderMaterial( 
-        {
-            uniforms: 
-                { 
-                        "c":   { type: "f", value: 0.44 },
-                        "p":   { type: "f", value: 2.0 },
-                        glowColor: { type: "c", value: new THREE.Color(0xffff00) },
-                        viewVector: { type: "v3", value: camera.position }
-                },
-                vertexShader:   document.getElementById( 'vertexShaderGlow' ).textContent,
-                fragmentShader: document.getElementById( 'fragmentShaderGlow' ).textContent,
-                side: THREE.FrontSide,
-                blending: THREE.AdditiveBlending,
-                transparent: true
-        }   );
-                
-    var sunGlowGeo = new THREE.SphereGeometry(SUN_SIZE*1.8,50,50);  
-    this.sunGlow = new THREE.Mesh( sunGlowGeo, customMaterialGlow.clone() );
-    this.sunGlow.name = "sunGlow";
-    sun_group.add( sunGlow );
     window.addEventListener('resize',onWindowResize,false);
     render();
     document.getElementById("loadbar").innerHTML="";
@@ -251,15 +201,8 @@ function CreateSphere(obj, radius, polygon_count, name, basic) {
         material.bumpMap = texture_loader.load(obj.bump);
         material.specularMap = texture_loader.load(obj.spec);
         material.normalMap = texture_loader.load(obj.norm);
-        // Cloud material
-        //var clouds_material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, opacity: 0.8, transparent: true, depthWrite: false});
-        //clouds_material.map = texture_loader.load(obj.clouds_texture);
-        //clouds_material.bumpMap = texture_loader.load(obj.clouds_bump);
-        //clouds_material.normalMap = texture_loader.load(obj.clouds_normal);
-        //var clouds_mesh = new THREE.Mesh(geometry, clouds_material);
         var mesh = new THREE.Mesh(geometry, material);
         mesh.name = name;
-        //mesh.add(clouds_mesh);
         return(mesh);
     }
     var mesh = new THREE.Mesh(geometry, material);
@@ -360,12 +303,6 @@ function animate() {
     render();
     //Keep camera pointed at target.
     controls.target= camera_position;
-    // Sun glow effect is calculated from view matrix so ensure as view matrix changes effect updates.
-    sunGlow.material.uniforms.viewVector.value = 
-          new THREE.Vector3().subVectors( camera.position, sunGlow.position );
-    sun_mesh.material.uniforms.baseSpeed.value = options.sun_effect_speed;
-    sun_mesh.material.uniforms.noiseScale.value = options.sun_effect_noise;
-    sun_mesh.material.uniforms.time.value += Clock.getDelta();
     stats_fps.update();
     update();
     requestAnimationFrame(animate);
@@ -390,5 +327,4 @@ function update(){
         //ScaleOverlaySpheres('Pluto_text', pluto_group, pluto_group, ZOOM_SCALE_FACTOR);
     }
     // Give sun a bit of rotation per frame.
-    sun_mesh.rotation.y += 0.0005;
 };

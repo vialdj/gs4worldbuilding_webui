@@ -369,7 +369,7 @@ Random Star System
     }  
 </script>
 <!-- Libraries -->
-<script src="static/js/lib/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="static/js/lib/three-text2d.js"></script>
 <script src="static/js/controls/OrbitControls.js"></script>
 <script src="static/js/lib/stats.min.js"></script>
@@ -417,7 +417,32 @@ Random Star System
 </script>
 <!-- Physics -->
 <script src="static/js/physics/Kepler.js"></script>
+<script type="x-shader/x-vertex" id="vertexshader">
 
-<script src="static/js/skybox.js"></script>
+    varying vec2 vUv;
+
+    void main() {
+
+        vUv = uv;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+    }
+
+</script>
+<script type="x-shader/x-fragment" id="fragmentshader">
+
+    uniform sampler2D baseTexture;
+
+    varying vec2 vUv;
+
+    void main() {
+
+        gl_FragColor = ( texture2D( baseTexture, vUv ) + vec4( 1.0 ) * texture2D( baseTexture, vUv ) );
+
+    }
+
+</script>
+<script src="static/js/star.js"></script>
 <script src="static/js/scene.js"></script>
 {% endblock %}
