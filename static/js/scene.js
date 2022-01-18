@@ -36,7 +36,7 @@ manager.onLoad= function(){
     document.getElementById("loadbar").innerHTML="";
 };
 
-var planet_objs, sun_group, skybox, orbit_outlines; // 3D objects and groups. Hierarchy is (in descending order of importance) orbit_group > planet_group. Sun and skybox group are special exceptions.
+var planet_objs, sun_group, orbit_outlines; // 3D objects and groups. Hierarchy is (in descending order of importance) orbit_group > planet_group. Sun and skybox group are special exceptions.
 // ^^^^^^^^^^ I must do this in a generic way but ugh re-architecting, hindsight how blessed art thou 
 // Setup FPS/Render Time/Memory usage monitor
 
@@ -75,13 +75,10 @@ function Planet(planet_obj, render_group) {
     }
 
     this.parent_group = render_group;
-    this.texture = 'static/textures/' + this.texture + '/surface_diff.jpg';
     this.bump = 'static/textures/' + this.texture + '/surface_bump.jpg';
     this.spec = 'static/textures/' + this.texture + '/surface_spec.jpg';
     this.norm = 'static/textures/' + this.texture + '/surface_norm.jpg';
-    this.clouds_texture = 'static/textures/' + this.texture + '/clouds0_diff.jpg';
-    this.clouds_bump = 'static/textures/' + this.texture + '/clouds0_bump.jpg';
-    this.clouds_norm = 'static/textures/' + this.texture + '/clouds0_norm.jpg';
+    this.texture = 'static/textures/' + this.texture + '/surface_diff.jpg';
 
     //Create 3D Object to be rendered, and add it to the THREE Object3d group.
     this.parent_group.add(CreateSphere(this, this.size, 50, this.name));
@@ -105,9 +102,9 @@ function init(){
     //  renderer.autoClear = false;
     //Setup camera and mouse controls.
     camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight,10,3e8);
-    camera.position.x = -15000;
-    camera.position.y = 7000;
-    camera.position.z = 2000;
+    camera.position.x = 0;
+    camera.position.y = 0;
+    camera.position.z = 0;
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 0.5;
@@ -176,15 +173,12 @@ function init(){
     this.sun_flare.position.set(0,0,0);
 
     scene.add(sun_flare);
-
+    
     //Setup planet objects...
-    skybox_group = new THREE.Object3D();
     sun_group = new THREE.Object3D();
     orbit_outlines = new THREE.Object3D();
 
     scene.add(sun_group);
-    scene.add(skybox_group);
-
     sun_group.add(orbit_outlines);
 
     planet_objs = []
@@ -210,12 +204,6 @@ function init(){
     }
 
     Camera_Focus = datGUI.add(options,'CameraFocus', planet_objs.map(function(planet_obj) { return (planet_obj.name); }));
-
-    // Create skydome. 
-    var SkyboxMesh = CreateSphere('static/textures/eso_dark.jpg', 1e8,50,"Skybox",true);
-    SkyboxMesh.material.side= THREE.BackSide;
-    SkyboxMesh.rotation.x = (Math.PI/180*63);
-    skybox_group.add(SkyboxMesh);
 
     // Add the sun.
     var sun_text_loader = new THREE.TextureLoader();
