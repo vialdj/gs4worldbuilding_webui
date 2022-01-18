@@ -154,26 +154,6 @@ function init(){
     scene.add(lights[ 0 ]);
     scene.add(lights[ 1 ]);
 
-    //Setup lens flare.
-    var lensloader = new THREE.TextureLoader;
-    var lensflare0 = new lensloader.load('static/textures/lens_flare/lensflare0.png');
-    var lensflare2 = new lensloader.load('static/textures/lens_flare/lensflare2.png');
-    var lensflare3 = new lensloader.load('static/textures/lens_flare/lensflare3.png');
-
-    this.sun_flare = new THREE.LensFlare(lensflare0,200,0.0,THREE.AdditiveBlending,new THREE.Color(0xffffff))
-
-    this.sun_flare.add( lensflare2, 512, 0.0, THREE.AdditiveBlending );
-    this.sun_flare.add( lensflare2, 512, 0.0, THREE.AdditiveBlending );
-    this.sun_flare.add( lensflare2, 512, 0.0, THREE.AdditiveBlending );
-
-    this.sun_flare.add( lensflare3, 60, 0.6, THREE.AdditiveBlending );
-    this.sun_flare.add( lensflare3, 70, 0.7, THREE.AdditiveBlending );
-    this.sun_flare.add( lensflare3, 120, 0.9, THREE.AdditiveBlending );
-    this.sun_flare.add( lensflare3, 70, 1.0, THREE.AdditiveBlending );
-    this.sun_flare.position.set(0,0,0);
-
-    scene.add(sun_flare);
-    
     //Setup planet objects...
     sun_group = new THREE.Object3D();
     orbit_outlines = new THREE.Object3D();
@@ -403,15 +383,6 @@ function update(){
     //Set Scaling Time from GUI
     SCALING_TIME = options.OrbitSpeedMultiplier;
     //Calculate orbits!
-
-    if(CalculateDistanceFromObject(camera.position.x,camera.position.y,camera.position.z,0,0,0)>25000){
-        this.sun_mesh.visible = false;
-        this.sunGlow.visible = false;
-    }
-    else{
-        this.sun_mesh.visible = true;
-        this.sunGlow.visible = true;
-    }
 
     for (var i = 0, size = planet_objs.length; i < size ; i++) {
         AdjustPlanetLocation(planet_objs[i])
