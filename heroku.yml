@@ -1,5 +1,0 @@
-release:
-  command:
-    - ./clone_gs4worldbuilding.sh
-run:
-  web: gunicorn wsgi:app
