@@ -1,4 +1,4 @@
-from .. import gs4worldbuilding as gs4wb
+import gs4worldbuilding as gs4wb
 
 import re
 import mimetypes
