@@ -1,3 +1,4 @@
 *.pyc
 .vscode
 gs4worldbuilding/*
+.venv
