@@ -12,25 +12,15 @@ import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/js
 import { EffectComposer } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { SpriteText2D, textAlign } from 'https://cdn.skypack.dev/three-text2d'
 import { CalculateTrueAnomaly, CalculateMT, KeplerSolve } from './modules/physics/Kepler.js';
 import * as THREE from 'https://cdn.skypack.dev/three@0.122.0';
-
-//Define Geometry
-var ZOOM_SCALE_FACTOR = 200000;
-const TRANSPARENT_SPHERE_SIZE = 5;
-const TRANSPARENT_SPHERE_NAME = "TransparentSphere";
 
 let composer, clock, camera, renderer;
 var controls;
 var camera_position = new THREE.Vector3(0,0,0); // Define where the camera is pointing at.
 var manager = new THREE.LoadingManager();
 
-var sceneObjs, star_group, orbit_outlines; // 3D objects and groups. Hierarchy is (in descending order of importance) orbit_group > planet_group. Sun and skybox group are special exceptions.
-// ^^^^^^^^^^ I must do this in a generic way but ugh re-architecting, hindsight how blessed art thou 
-// Setup FPS/Render Time/Memory usage monitor
-
-var stats_fps = new Stats();
+var sceneObjs, star_group, orbit_outlines;
 
 // Setup the GUI Options
 var datGUI;
@@ -49,8 +39,6 @@ var options = new function(){
 
 init();
 animate();
-
- // Kilograms
 
 // Encapsulates all physical properties of the celestial body. Also handles rendering.
 function Planet(planet_obj, render_group) {
@@ -74,9 +62,6 @@ function Planet(planet_obj, render_group) {
 };
 
 function init(){
-
-    stats_fps.showPanel(0);
-
     clock = new THREE.Clock();
     //Setup Renderer!
     renderer = new THREE.WebGLRenderer({ antialias: false }); // Logarithmic depth buffer set to true causes severe shader artifacts.
@@ -118,7 +103,6 @@ function init(){
 
     //Add our 3D scene to the html web page!
     document.getElementById('system-map').appendChild(renderer.domElement);
-    document.getElementById('system-map').appendChild(stats_fps.dom);
 
     scene.add(new THREE.AmbientLight(0xffffff,0.1));
 
@@ -204,13 +188,6 @@ function CreateTransparentSphere(radius,polygon_count,name){
     return(sphere_mesh);
 };
 
-//function CreateSpriteText(text,colour,name,offset){
-//    var SpriteText = new SpriteText2D(text, { align: textAlign.center, font: '30px Arial', fillStyle: colour, antialias: true });
-//    SpriteText.position.set(0,offset+10,0);
-//    SpriteText.name = name;
-//    return(SpriteText);
-//}
-
 // Pretty sure Three.Vector3 makes this redundant. Has a deltaV measurement I am pretty sure.
 function CalculateDistanceFromObject(camera_x,camera_y,camera_z,object_x,object_y,object_z){
     var delta_x = Math.abs((camera_x - object_x));
@@ -263,23 +240,18 @@ function onWindowResize() {
 
 function animate() {
     //Keep camera pointed at target.
-    controls.target= camera_position;
-    stats_fps.update();
+    controls.target = camera_position;
     update();
     requestAnimationFrame(animate);
     composer.render();
 };
 
-// This encapsulates the majority of the physics and animations. Helpful to profile performance in chrome dev tools.
 function update(){
     controls.update();
     controls.target= camera_position;
     UpdateCameraLocation();
-    //Calculate orbits!
 
     for (var i = 0, size = sceneObjs.length; i < size ; i++) {
         AdjustPlanetLocation(sceneObjs[i])
-        //ScaleOverlaySpheres('Pluto_text', pluto_group, pluto_group, ZOOM_SCALE_FACTOR);
     }
-    // Give sun a bit of rotation per frame.
 };
