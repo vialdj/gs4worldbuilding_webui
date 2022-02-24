@@ -1,2 +1,3 @@
 gunicorn
 flask
+git+https://github.com/vialdj/gs4worldbuilding@master#egg=gs4worldbuilding
