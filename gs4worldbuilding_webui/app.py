@@ -4,7 +4,7 @@ import re
 import mimetypes
 mimetypes.add_type('text/javascript', '.js')
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from astropy import units as u
 import numpy as np
 
@@ -164,18 +164,21 @@ def dmsFormat(value):
     return '{:.0f}°{:02.0f}"{:02.0f}\'.{}'.format(d, m, s, str(s % 1)[2:][:2])
 
 
-@app.route('/random_world')
+@app.route('/world')
 def random_world():
     world = gs4wb.Builder.build_world()
     return render_template('terrestrial.html', world=world)
 
-@app.route('/')
+@app.route('/star_system')
 def random_star_system():
-    star_system = gs4wb.Builder.build_star_system()
+    url_seed = request.args.get('seed')
+    seed = int(url_seed) if url_seed else None
+    star_system = gs4wb.Builder.build_star_system(seed)
+    seed = seed if seed else gs4wb.random.RandomGenerator().seed
     global biggest_world, biggest_star
     biggest_world = sorted(star_system._worlds, key=lambda x: x.diameter if hasattr(x, 'diameter') else 0)[-1]
     biggest_star = sorted(star_system._stars, key=lambda x: x.radius if hasattr(x, 'radius') else 0)[-1]
-    return render_template('star_system.html', star_system=star_system)
+    return render_template('star_system.html', star_system=star_system, seed=seed)
 
 
 if __name__ == '__main__':

@@ -13,6 +13,10 @@ Random Star System
                     <tbody>
                         <tr><th class="text-center" colspan="2">Star system summary</th></tr>
                         <tr>
+                            <td>Seed</td>
+                            <td class="text-right">{{ seed }}</td>
+                        </tr>
+                        <tr>
                             <td>Multiplicity</td>
                             <td class="text-right">{{ star_system.multiplicity | enumFormat }}</td>
                         </tr>
@@ -61,6 +65,7 @@ Random Star System
                     {% endif %}
                     <div class="card-body">
                         <div class="card-title font-weight-bold">{{ world.name }}</div>
+                        <div class="card-text">{{ world._designation }}</div>
                         {% if world is planet %}
                         <div class="card-text">{{ world.diameter | diameterFormat }}</div>
                         {% endif %}
