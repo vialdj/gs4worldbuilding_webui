@@ -5,6 +5,18 @@ Random Star System
 {% endblock %}
       
 {% block body %}
+<nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+    <form class="form-inline" method="POST" action="{{ url_for('star_system') }}">
+        <div class="input-group">
+            <input type="int" class="form-control" name="seed" placeholder="e.g. 42" aria-label="Seed" value="{{ seed }}">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit"><i class="bi-arrow-clockwise"></i></button>
+            </div>
+        </div>
+    </form>
+    <a href="{{ url_for('star_system') }}"><button class="btn btn-outline-secondary" type="button"><i class="bi-dice-3"></i></button></a>
+    <button class="btn btn-outline-secondary" type="button"><i class="bi-link-45deg"></i></button>
+</nav>
 <section>
     <div class="container-fluid">
         <div class="card">
@@ -12,10 +24,6 @@ Random Star System
                 <table class="table table-striped table-bordered">
                     <tbody>
                         <tr><th class="text-center" colspan="2">Star system summary</th></tr>
-                        <tr>
-                            <td>Seed</td>
-                            <td class="text-right">{{ seed }}</td>
-                        </tr>
                         <tr>
                             <td>Multiplicity</td>
                             <td class="text-right">{{ star_system.multiplicity | enumFormat }}</td>
@@ -362,6 +370,6 @@ Random Star System
 </script>
 <!-- Physics -->
 
-<script type="module" src="static/js/main.js"></script>
+<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 {% endblock %}

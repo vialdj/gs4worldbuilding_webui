@@ -2,9 +2,10 @@ import gs4worldbuilding as gs4wb
 
 import re
 import mimetypes
+
 mimetypes.add_type('text/javascript', '.js')
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, redirect, request, url_for
 from astropy import units as u
 import numpy as np
 
@@ -165,21 +166,30 @@ def dmsFormat(value):
 
 
 @app.route('/world')
-def random_world():
+def world():
     world = gs4wb.Builder.build_world()
     return render_template('terrestrial.html', world=world)
 
-@app.route('/star_system')
-def random_star_system():
-    url_seed = request.args.get('seed')
-    seed = int(url_seed) if url_seed else None
-    star_system = gs4wb.Builder.build_star_system(seed)
-    seed = seed if seed else gs4wb.random.RandomGenerator().seed
+@app.route('/star_system', methods=['GET', 'POST'])
+def star_system():
+    if request.method == 'GET':
+        gs4wb.random.RandomGenerator().randomize_seed()
+        return redirect(url_for('star_system_seeded', seed=gs4wb.random.RandomGenerator().seed))
+    elif request.method == 'POST':
+        seed = request.form['seed']
+        return redirect(url_for('star_system_seeded', seed=seed))
+
+@app.route('/star_system/<int:seed>', methods=['GET'])
+def star_system_seeded(seed):
+    star_system = gs4wb.Builder.build_star_system(int(seed))
     global biggest_world, biggest_star
     biggest_world = sorted(star_system._worlds, key=lambda x: x.diameter if hasattr(x, 'diameter') else 0)[-1]
     biggest_star = sorted(star_system._stars, key=lambda x: x.radius if hasattr(x, 'radius') else 0)[-1]
     return render_template('star_system.html', star_system=star_system, seed=seed)
 
+@app.route('/')
+def index():
+    return redirect(url_for('star_system'))
 
 if __name__ == '__main__':
     app.run()
