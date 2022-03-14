@@ -47,7 +47,7 @@ Random Star System
                     <img class="card-img-top">
                         <src>
                             <svg xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="0" cy="0" r="{{ star.radius | scaleRadius }}" fill="transparent" stroke="black" stroke-width=2/>
+                                <circle cx="0" cy="0" r="{{ star.radius | scaleRadius }}" fill="{{ star.spectral_type | spectral_type_color }}"/>
                             </svg>
                         </src>
                     <img>

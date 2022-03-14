@@ -164,6 +164,44 @@ def dmsFormat(value):
     d, m = divmod(m, 60)
     return '{:.0f}°{:02.0f}"{:02.0f}\'.{}'.format(d, m, s, str(s % 1)[2:][:2])
 
+@app.template_filter()
+def spectral_type_color(value):
+    color_dict = {
+        'A5': '#f9fcc8',
+        'A6': '#f9fcc8',
+        'A7': '#f9fcc8',
+        'A9': '#f9fcc8',
+        'F0': '#f4fe50',
+        'F2': '#f4fe50',
+        'F3': '#f4fe50',
+        'F4': '#f4fe50',
+        'F5': '#f4fe50',
+        'F6': '#f4fe50',
+        'F7': '#f4fe50',
+        'F8': '#f4fe50',
+        'F9': '#f4fe50',
+        'G0': '#fedb50',
+        'G1': '#fedb50',
+        'G2': '#fedb50',
+        'G4': '#fedb50',
+        'G6': '#fedb50',
+        'G8': '#fedb50',
+        'K0': '#fdc289',
+        'K2': '#fdc289',
+        'K4': '#fdc289',
+        'K5': '#fdc289',
+        'K6': '#fdc289',
+        'K8': '#fdc289',
+        'M0': '#fd9c89',
+        'M1': '#fd9c89',
+        'M2': '#fd9c89',
+        'M3': '#fd9c89',
+        'M4': '#fd9c89',
+        'M5': '#fd9c89',
+        'M6': '#fd9c89',
+        'M7': '#fd9c89',
+        'D': '#ffffff'}
+    return color_dict[value]
 
 @app.route('/world')
 def world():
